@@ -7,35 +7,6 @@ import librosa
 data_dir=""
 Out_dir="data"
 
-def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
-    file_infos = []
-    data = []
-    parameter = []
-    in_dir = os.path.abspath(in_dir)
-    wav_list = os.listdir(in_dir)
-    for wav_file in wav_list:
-        if not wav_file.endswith('.wav'):
-            continue
-        wav_path = os.path.join(in_dir, wav_file)       
-        samples, _ = librosa.load(wav_path, sr=sample_rate)
-        sp, yphase = Spectrum(samples, 512, 256, 512, 2)
-        data.append(sp)
-        parameter.append([yphase, wav_file.replace(wav_list, '')])
-        file_infos.append((wav_path, len(samples)))
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    with open(os.path.join(out_dir, out_filename + '.json'), 'w') as f:
-        json.dump(file_infos, f, indent=4)
-
-
-def preprocess(args):
-    for data_type in ['tr', 'cv', 'tt']:
-        for speaker in ['noisy_03', 'noisy_06', 'noisy_09', 'clean']:
-            preprocess_one_dir(os.path.join(args.in_dir, data_type, speaker),
-                               os.path.join(args.out_dir, data_type),
-                               speaker,
-                               sample_rate=args.sample_rate)
-
 def Spectrum(sig, FrameLength, FrameRate, FFT_SIZE, flag):       #(sig, 512, 256, 512, 2)
     Len = len(sig)
     ncols = int((Len-FrameLength)/FrameRate)
@@ -68,6 +39,38 @@ def Spectrum(sig, FrameLength, FrameRate, FFT_SIZE, flag):       #(sig, 512, 256
     else:
         Spec = fftspectrum[0:FFT_SIZE//2, :]
     return np.log10(Spec, where=Spec>0), yphase
+
+
+def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
+    file_infos = []
+    data = []
+    parameter = []
+    in_dir = os.path.abspath(in_dir)
+    wav_list = os.listdir(in_dir)
+    for wav_file in wav_list:
+        if not wav_file.endswith('.wav'):
+            continue
+        wav_path = os.path.join(in_dir, wav_file)       
+        samples, _ = librosa.load(wav_path, sr=sample_rate)
+        sp, yphase = Spectrum(samples, 512, 256, 512, 2)
+        data.append(sp)
+        parameter.append([yphase, wav_file.replace(wav_list, '')])
+        
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    with open(os.path.join(out_dir, out_filename + '_parameter.json'), 'w') as f:
+        json.dump(parameter, f, indent=4)
+    with open(os.path.join(out_dir, out_filename + '.json'), 'w') as f:
+        json.dump(data, f, indent=4)
+
+
+def preprocess(args):
+    for data_type in ['tr', 'cv', 'tt']:
+        for speaker in ['noisy_03', 'noisy_06', 'noisy_09', 'clean']:
+            preprocess_one_dir(os.path.join(args.in_dir, data_type, speaker),
+                               os.path.join(args.out_dir, data_type),
+                               speaker,
+                               sample_rate=args.sample_rate)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("data preprocessing")
