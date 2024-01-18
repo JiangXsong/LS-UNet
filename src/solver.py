@@ -7,9 +7,6 @@ import time
 import torch
 import torch.nn as nn
 
-from pit_criterion import cal_loss
-
-
 class Solver(object):
     
     def __init__(self, data, model, optimizer, args):
@@ -130,14 +127,6 @@ class Solver(object):
         total_loss = 0
 
         data_loader = self.tr_loader if not cross_valid else self.cv_loader
-
-        # visualizing loss using visdom
-        if self.visdom_epoch and not cross_valid:
-            vis_opts_epoch = dict(title=self.visdom_id + " epoch " + str(epoch),
-                                  ylabel='Loss', xlabel='Epoch')
-            vis_window_epoch = None
-            vis_iters = torch.arange(1, len(data_loader) + 1)
-            vis_iters_loss = torch.Tensor(len(data_loader))
 
         for i, (xt,yt) in enumerate(data_loader):
             #padded_mixture, mixture_lengths, padded_source = data

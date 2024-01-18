@@ -7,7 +7,7 @@ import argparse
 from torch.utils.data import DataLoader 
 import torch
 
-from data import AudioDataLoader, AudioDataset
+from data import AudioDataset
 from solver import Solver
 from convolutional_models import LateSupUnet
 
@@ -20,20 +20,23 @@ parser.add_argument('--train_dir', type=str, default=None,
                     help='directory including mix.json, s1.json and s2.json')
 parser.add_argument('--valid_dir', type=str, default=None,
                     help='directory including mix.json, s1.json and s2.json')
-parser.add_argument('--sample_rate', default=16000, type=int,
-                    help='Sample rate')
-parser.add_argument('--segment', default=4, type=float,
-                    help='Segment length (seconds)')
-parser.add_argument('--cv_maxlen', default=8, type=float,
-                    help='max audio length (seconds) in cv, to avoid OOM issue.')
-# Network architecture
+#parser.add_argument('--sample_rate', default=16000, type=int,
+#                    help='Sample rate')
+#parser.add_argument('--segment', default=4, type=float,
+#                    help='Segment length (seconds)')
+#parser.add_argument('--cv_maxlen', default=8, type=float,
+#                    help='max audio length (seconds) in cv, to avoid OOM issue.')
 
-parser.add_argument('--norm_type', default='gLN', type=str,
-                    choices=['gLN', 'cLN', 'BN'], help='Layer norm type')
-parser.add_argument('--causal', type=int, default=0,
-                    help='Causal (1) or noncausal(0) training')
-parser.add_argument('--mask_nonlinear', default='relu', type=str,
-                    choices=['relu', 'softmax'], help='non-linear to generate mask')
+
+# Network architecture
+#parser.add_argument('--norm_type', default='gLN', type=str,
+#                    choices=['gLN', 'cLN', 'BN'], help='Layer norm type')
+#parser.add_argument('--causal', type=int, default=0,
+#                    help='Causal (1) or noncausal(0) training')
+#parser.add_argument('--mask_nonlinear', default='relu', type=str,
+#                    choices=['relu', 'softmax'], help='non-linear to generate mask')
+
+
 # Training config
 parser.add_argument('--use_cuda', type=int, default=1,
                     help='Whether use GPU')
@@ -45,13 +48,14 @@ parser.add_argument('--early_stop', dest='early_stop', default=0, type=int,
                     help='Early stop training when no improvement for 10 epochs')
 parser.add_argument('--max_norm', default=5, type=float,
                     help='Gradient norm threshold to clip')
-# minibatch
+# batch
 parser.add_argument('--shuffle', default=0, type=int,
                     help='reshuffle the data at every epoch')
 parser.add_argument('--batch_size', default=128, type=int,
                     help='Batch size')
-parser.add_argument('--num_workers', default=4, type=int,
-                    help='Number of workers to generate minibatch')
+#parser.add_argument('--num_workers', default=4, type=int,
+#                    help='Number of workers to generate minibatch')
+
 # optimizer
 parser.add_argument('--optimizer', default='adam', type=str,
                     choices=['sgd', 'adam'],
@@ -81,8 +85,8 @@ def main(args):
     # data
     tr_dataset = AudioDataset(args.train_dir)
     cv_dataset = AudioDataset(args.valid_dir)
-    tr_loader = DataLoader(tr_dataset ,batch_size = 1, shuffle = False)
-    cv_loader = DataLoader(cv_dataset ,batch_size = 1, shuffle = False)
+    tr_loader = DataLoader(tr_dataset ,batch_size = 1, shuffle=args.shuffle)
+    cv_loader = DataLoader(cv_dataset ,batch_size = 1, shuffle=args.shuffle)
     data = {'tr_loader': tr_loader, 'cv_loader': cv_loader}
     # model
     model = LateSupUnet(n_channels=1, bilinear=False)
