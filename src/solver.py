@@ -7,6 +7,7 @@ import time
 import torch
 import torch.nn as nn
 
+
 class Solver(object):
     
     def __init__(self, data, model, optimizer, args):
@@ -79,14 +80,14 @@ class Solver(object):
                 print('Saving checkpoint model to %s' % file_path)
 
             # Cross validation
-            print('Cross validation...')
-            self.model.eval()  # Turn off Batchnorm & Dropout
-            val_loss = self._run_one_epoch(epoch, cross_valid=True)
-            print('-' * 85)
-            print('Valid Summary | End of Epoch {0} | Time {1:.2f}s | '
-                  'Valid Loss {2:.3f}'.format(
-                      epoch + 1, time.time() - start, val_loss))
-            print('-' * 85)
+            #print('Cross validation...')
+            #self.model.eval()  # Turn off Batchnorm & Dropout
+            #val_loss = self._run_one_epoch(epoch, cross_valid=True)
+            #print('-' * 85)
+            #print('Valid Summary | End of Epoch {0} | Time {1:.2f}s | '
+            #      'Valid Loss {2:.3f}'.format(
+            #          epoch + 1, time.time() - start, val_loss))
+            #print('-' * 85)
 
             # Adjust learning rate (halving)
             if self.half_lr:
