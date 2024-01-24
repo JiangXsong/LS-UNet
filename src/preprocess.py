@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import json
+import pickle
 import os
 import numpy as np
 import librosa
@@ -59,10 +59,10 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    with open(os.path.join(out_dir, out_filename + '_parameter.json'), 'w') as f:
-        json.dump(parameter, f)# indent=4
-    with open(os.path.join(out_dir, out_filename + '.json'), 'w') as f:
-        json.dump(data, f)# indent=4
+    with open(os.path.join(out_dir, out_filename + '_parameter.txt'), 'wb') as fp:
+        pickle.dump(parameter, fp)# indent=4
+    with open(os.path.join(out_dir, out_filename + '.txt'), 'wb') as fp:
+        pickle.dump(data, fp)# indent=4
 
 
 def preprocess(args):

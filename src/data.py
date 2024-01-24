@@ -18,7 +18,7 @@ Output:
     Each targets's shape is B x C x T
 """
 
-import json
+import pickle
 import math
 import os
 
@@ -40,19 +40,19 @@ class AudioDataset(data.Dataset):
         xxx_infos is a list and each item is a tuple (wav_file, #samples)
         """
         super(AudioDataset, self).__init__()
-        RT_03 = os.path.join(json_dir, 'noisy_03.json')
-        RT_06 = os.path.join(json_dir, 'noisy_06.json')
-        RT_09 = os.path.join(json_dir, 'noisy_09.json')
-        Clean = os.path.join(json_dir, 'clean.json')
-        with open(RT_03, 'r') as f:
-            noisy_03_infos = json.load(f)
-        with open(RT_06, 'r') as f:
-            noisy_06_infos = json.load(f)
-        with open(RT_09, 'r') as f:
-            noisy_09_infos = json.load(f)
+        RT_03 = os.path.join(json_dir, 'noisy_03.txt')
+        RT_06 = os.path.join(json_dir, 'noisy_06.txt')
+        RT_09 = os.path.join(json_dir, 'noisy_09.txt')
+        Clean = os.path.join(json_dir, 'clean.txt')
+        with open(RT_03, 'rb') as fp:
+            noisy_03_infos = pickle.load(fp)
+        with open(RT_06, 'rb') as fp:
+            noisy_06_infos = pickle.load(fp)
+        with open(RT_09, 'rb') as fp:
+            noisy_09_infos = pickle.load(fp)
         self.datas = np.concatenate([noisy_03_infos, noisy_06_infos, noisy_09_infos], axis=0)
-        with open(Clean, 'r') as f:
-            clean_infos = json.load(f)
+        with open(Clean, 'rb') as fp:
+            clean_infos = pickle.load(fp)
         self.datas_train = []
         self.label_train = []
         for i in range(len(self.datas)):
