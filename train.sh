@@ -1,12 +1,17 @@
+#!/bin/bash
+
+# -- START IMPORTANT
 speech=/home/song/LS-UNet/   #audio path
 stage=1
+# -- END
 
 dumpdir=data  #directory ro put generated json file
+
 # --START LS-UNet config
 train_dir=$dumpdir/tr
 sample_rate=16000
 
-# --Training config
+# Training config
 use_cuda=1
 epochs=100
 half_lr=1
@@ -19,10 +24,12 @@ optimizer=adam
 lr=2e-4
 momentum=0
 l2=0
-# --save
+# save
 checkpoint=0
 continue_from=""
 print_freq=100
+# end START LS-UNet config
+
 
 tag="" # tag for managing experiments.
 

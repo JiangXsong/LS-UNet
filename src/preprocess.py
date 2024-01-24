@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import json
 import os
@@ -55,7 +57,7 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
         sp, yphase = Spectrum(samples, 512, 256, 512, 2)
         data.append(sp)
         parameter.append([yphase, wav_file.replace(wav_list, '')])
-        
+
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     with open(os.path.join(out_dir, out_filename + '_parameter.json'), 'w') as f:
