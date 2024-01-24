@@ -28,7 +28,7 @@ l2=0
 checkpoint=0
 continue_from=""
 print_freq=100
-# end START LS-UNet config
+# --END LS-UNet config
 
 
 tag="" # tag for managing experiments.
