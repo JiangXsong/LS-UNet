@@ -31,7 +31,7 @@ import librosa
 
 class AudioDataset(data.Dataset):
 
-    def __init__(self, json_dir):
+    def __init__(self, txt_dir):
         """
         Args:
             json_dir: directory including mix.json, s1.json and s2.json
@@ -40,10 +40,10 @@ class AudioDataset(data.Dataset):
         xxx_infos is a list and each item is a tuple (wav_file, #samples)
         """
         super(AudioDataset, self).__init__()
-        RT_03 = os.path.join(json_dir, 'noisy_03.txt')
-        RT_06 = os.path.join(json_dir, 'noisy_06.txt')
-        RT_09 = os.path.join(json_dir, 'noisy_09.txt')
-        Clean = os.path.join(json_dir, 'clean.txt')
+        RT_03 = os.path.join(txt_dir, 'noisy_03.txt')
+        RT_06 = os.path.join(txt_dir, 'noisy_06.txt')
+        RT_09 = os.path.join(txt_dir, 'noisy_09.txt')
+        Clean = os.path.join(txt_dir, 'clean.txt')
         with open(RT_03, 'rb') as fp:
             noisy_03_infos = pickle.load(fp)
         with open(RT_06, 'rb') as fp:

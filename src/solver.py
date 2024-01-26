@@ -80,14 +80,14 @@ class Solver(object):
                 print('Saving checkpoint model to %s' % file_path)
 
             # Cross validation
-            #print('Cross validation...')
-            #self.model.eval()  # Turn off Batchnorm & Dropout
-            #val_loss = self._run_one_epoch(epoch, cross_valid=True)
-            #print('-' * 85)
-            #print('Valid Summary | End of Epoch {0} | Time {1:.2f}s | '
-            #      'Valid Loss {2:.3f}'.format(
-            #          epoch + 1, time.time() - start, val_loss))
-            #print('-' * 85)
+            print('Cross validation...')
+            self.model.eval()  # Turn off Batchnorm & Dropout
+            val_loss = self._run_one_epoch(epoch, cross_valid=True)
+            print('-' * 85)
+            print('Valid Summary | End of Epoch {0} | Time {1:.2f}s | '
+                  'Valid Loss {2:.3f}'.format(
+                      epoch + 1, time.time() - start, val_loss))
+            print('-' * 85)
 
             # Adjust learning rate (halving)
             if self.half_lr:
@@ -134,18 +134,10 @@ class Solver(object):
             if self.use_cuda:
                 xt = xt.cuda()
                 yt = yt.cuda()
-                '''
-                padded_mixture = padded_mixture.cuda()
-                mixture_lengths = mixture_lengths.cuda()
-                padded_source = padded_source.cuda()
-                '''
+                
             xa = xt.unsqueeze(0)
             ya = yt.squeeze(0)
-            '''
-            estimate_source = self.model(padded_mixture)
-            loss, max_snr, estimate_source, reorder_estimate_source = \
-                cal_loss(padded_source, estimate_source, mixture_lengths)
-            '''
+            
             output = self.model(xa)
             loss = nn.MSELoss(output, ya)
             if not cross_valid:
