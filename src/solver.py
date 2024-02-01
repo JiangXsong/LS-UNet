@@ -15,6 +15,7 @@ class Solver(object):
         self.cv_loader = data['cv_loader']
         self.model = model
         self.optimizer = optimizer
+        self.criterion = nn.MSELoss()
 
         # Training config
         self.use_cuda = args.use_cuda
@@ -78,7 +79,7 @@ class Solver(object):
                                                        cv_loss=self.cv_loss),
                            file_path)
                 print('Saving checkpoint model to %s' % file_path)
-
+            '''
             # Cross validation
             print('Cross validation...')
             self.model.eval()  # Turn off Batchnorm & Dropout
@@ -122,7 +123,7 @@ class Solver(object):
                                                        cv_loss=self.cv_loss),
                            file_path)
                 print("Find better validated model, saving to %s" % file_path)
-
+            '''
     def _run_one_epoch(self, epoch, cross_valid=False):
         start = time.time()
         total_loss = 0
@@ -139,7 +140,7 @@ class Solver(object):
             ya = yt.squeeze(0)
             
             output = self.model(xa)
-            loss = nn.MSELoss(output, ya)
+            loss = self.criterion(output, ya)
             if not cross_valid:
                 self.optimizer.zero_grad()
                 loss.backward()

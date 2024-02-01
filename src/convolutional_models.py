@@ -52,7 +52,7 @@ class Channel_select(nn.Module):
     
     def forward(self, input):
 
-        x = self.l1(input.permute(0, 2, 1))
+        x = self.l1(input)
         x = self.relu(x)
         x = self.l2(x)
         x = self.relu(x)
@@ -81,36 +81,7 @@ class Deep_ElectroNet(nn.Module):
 	def forward(self, input):
 		x = self.LS_UNet(input)
 		x = self.CS(x)
-		x = x.squeeze(0).squeeze(0)
+		x = x.squeeze(0)
 
 		return x
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

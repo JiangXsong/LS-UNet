@@ -28,6 +28,12 @@ import torch.utils.data as data
 
 import librosa
 
+def append_data(data, clean_infos, datas_train, label_train):  
+    for i in range(len(data)):
+        datas_train.append(data[i])
+        label_train.append(clean_infos[i%len(clean_infos)])
+        
+    return datas_train, label_train
 
 class AudioDataset(data.Dataset):
 
@@ -40,24 +46,26 @@ class AudioDataset(data.Dataset):
         xxx_infos is a list and each item is a tuple (wav_file, #samples)
         """
         super(AudioDataset, self).__init__()
-        RT_03 = os.path.join(txt_dir, 'noisy_03.txt')
-        RT_06 = os.path.join(txt_dir, 'noisy_06.txt')
-        RT_09 = os.path.join(txt_dir, 'noisy_09.txt')
+        Noise_02 = os.path.join(txt_dir, '-2dB.txt')
+        Noise_06 = os.path.join(txt_dir, '-6dB.txt')
+        Noise_2 = os.path.join(txt_dir, '2dB.txt')
+        Noise_6 = os.path.join(txt_dir, '6dB.txt')
         Clean = os.path.join(txt_dir, 'clean.txt')
-        with open(RT_03, 'rb') as fp:
-            noisy_03_infos = pickle.load(fp)
-        with open(RT_06, 'rb') as fp:
-            noisy_06_infos = pickle.load(fp)
-        with open(RT_09, 'rb') as fp:
-            noisy_09_infos = pickle.load(fp)
-        self.datas = np.concatenate([noisy_03_infos, noisy_06_infos, noisy_09_infos], axis=0)
+        with open(Noise_02, 'rb') as fp:
+            Noise_02_infos = pickle.load(fp)
+        with open(Noise_06, 'rb') as fp:
+            Noise_06_infos = pickle.load(fp)
+        with open(Noise_2, 'rb') as fp:
+            Noise_2_infos = pickle.load(fp)
+        with open(Noise_6, 'rb') as fp:
+            Noise_6_infos = pickle.load(fp)
+        self.datas = [Noise_02_infos, Noise_06_infos, Noise_2_infos, Noise_6_infos]
         with open(Clean, 'rb') as fp:
             clean_infos = pickle.load(fp)
         self.datas_train = []
         self.label_train = []
         for i in range(len(self.datas)):
-            self.datas_train.append((self.datas[i]))
-            self.label_train.append(clean_infos[i%len(clean_infos)])
+            self.datas_train, self.label_train = append_data(self.datas[i], clean_infos, self.datas_train, self.label_train)
 
     def __getitem__(self, index):
         xt = torch.Tensor(np.array(self.datas_train[index]))

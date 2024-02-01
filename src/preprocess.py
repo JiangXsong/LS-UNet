@@ -46,9 +46,9 @@ def FFT_filter(audio, FrameLength, FrameShift, FFT_SIZE): #ACE策略使用的FFT
     fftspectrum = np.array(fftspectrum)
     yphase = np.array(yphase)
 
-    return fftspectrum, yphase
+    return np.log10(fftspectrum, where=fftspectrum>0), yphase
 
-def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
+def preprocess_one_dir(in_dir, out_dir, filename, sample_rate=16000):
     data = []
     parameter = []
     in_dir = os.path.abspath(in_dir)
@@ -57,15 +57,17 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    if out_filename == "clean":
+    if filename == "clean":
         for mat_file in file_list:
-            if not wav_file.endswith('.mat'):
+            if not mat_file.endswith('.mat'):
                 continue
             mat_path = os.path.join(in_dir, mat_file)       
             samples = loadmat(mat_path)['bandFTM']
+            samples = np.array(samples)
+            samples = samples.T
             data.append(samples)
         
-        with open(os.path.join(out_dir, out_filename + '.txt'), 'wb') as fp:
+        with open(os.path.join(out_dir, 'clean.txt'), 'ab') as fp:
             pickle.dump(data, fp)# indent=4
     else:
         for wav_file in file_list:
@@ -77,9 +79,9 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
             data.append(sp)
             parameter.append([yphase, wav_file.replace(file_list, '')])
 
-        with open(os.path.join(out_dir, out_filename + '_parameter.txt'), 'wb') as fp:
+        with open(os.path.join(out_dir, 'noise_parameter.txt'), 'ab') as fp:
             pickle.dump(parameter, fp)# indent=4
-        with open(os.path.join(out_dir, out_filename + '.txt'), 'wb') as fp:
+        with open(os.path.join(out_dir, 'noise.txt'), 'ab') as fp:
             pickle.dump(data, fp)# indent=4
 
 def preprocess(args):
