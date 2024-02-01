@@ -9,39 +9,43 @@ import librosa
 data_dir=""
 Out_dir="data"
 
-def Spectrum(sig, FrameLength, FrameRate, FFT_SIZE, flag):       #(sig, 512, 256, 512, 2)
-    Len = len(sig)
-    ncols = int((Len-FrameLength)/FrameRate)
-    fftspectrum = np.zeros([FFT_SIZE, ncols])
-    Spectrum = np.zeros([FFT_SIZE//2+1, ncols])
-    En = np.zeros([1, ncols])
-    wind = np.hamming(FrameLength)
-    
-    x_seg = []
+def FFT_filter(audio, FrameLength, FrameShift, FFT_SIZE): #ACE策略使用的FFT => (audio, 128, 23, 128)
+    audio_len = len(audio)
+    #overlap_samples = FrameLength-FrameShift     #下一Frame與上一Frame重疊樣本數
+    window = np.hamming(FrameLength)
+    num_bins = FrameLength//2 + 1
+
+    #初始化
     fftspectrum = []
     yphase = []
-    Spec = []
-    i = 0
-    for t in range(0, Len-FrameLength, FrameRate):
-        #pdb.set_trace()
-        x_seg.append(wind*(sig[t:(t+FrameLength)]))
-        fftspectrum.append(np.fft.fft(x_seg[i], FFT_SIZE))
-        yphase.append(np.angle(fftspectrum[i]))
-        Spec.append(np.abs(fftspectrum[i][0:FFT_SIZE//2+1]))
-        i += 1
-    
+    start_sample = 0
+
+    while start_sample < audio_len:
+        #分段的結束位置
+        end_sample = min(start_sample+FrameLength, audio_len)
+
+        segment = audio[start_sample:end_sample]
+        
+        #若分段長度不足則補0
+        if len(segment) < FrameLength:
+            segment = np.append(segment, np.zeros(FrameLength-len(segment)))
+
+        #應用窗函數
+        windowed_segment = segment * window
+
+        #進行FFT轉換
+        fft_segment = (np.fft.fft(windowed_segment, FFT_SIZE))
+
+        fftspectrum.append(fft_segment[:num_bins])
+        yphase.append(np.angle(fft_segment))
+
+        #更新下一Frame起始位置，FrameShift為上一Frame起始位置的位移量
+        start_sample += FrameShift              
+
     fftspectrum = np.array(fftspectrum)
     yphase = np.array(yphase)
-    Spec = np.array(Spec)
-    #pdb.set_trace()
-    if flag==2:
-        Spec = Spec**2
-    elif flag==1:
-        Spec = Spec
-    else:
-        Spec = fftspectrum[0:FFT_SIZE//2, :]
-    return np.log10(Spec, where=Spec>0), yphase
 
+    return fftspectrum, yphase
 
 def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
     data = []
@@ -53,7 +57,7 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
             continue
         wav_path = os.path.join(in_dir, wav_file)       
         samples, _ = librosa.load(wav_path, sr=sample_rate)
-        sp, yphase = Spectrum(samples, 512, 256, 512, 2)
+        sp, yphase = FFT_filter(samples, 128, 23, 128)
         data.append(sp)
         parameter.append([yphase, wav_file.replace(wav_list, '')])
 
