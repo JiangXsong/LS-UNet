@@ -84,7 +84,7 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
 
 def preprocess(args):
     for data_type in ['tr', 'cv', 'tt']:
-        for speaker in ['noisy_03', 'noisy_06', 'noisy_09', 'clean']:
+        for speaker in ['-2dB', '-6dB', '2dB', "6dB", 'clean']:
             preprocess_one_dir(os.path.join(args.in_dir, data_type, speaker),
                                os.path.join(args.out_dir, data_type),
                                speaker,
