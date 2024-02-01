@@ -5,6 +5,7 @@ import pickle
 import os
 import numpy as np
 import librosa
+from scipy.io import loadmat
 
 data_dir=""
 Out_dir="data"
@@ -51,23 +52,35 @@ def preprocess_one_dir(in_dir, out_dir, out_filename, sample_rate=16000):
     data = []
     parameter = []
     in_dir = os.path.abspath(in_dir)
-    wav_list = os.listdir(in_dir)
-    for wav_file in wav_list:
-        if not wav_file.endswith('.wav'):
-            continue
-        wav_path = os.path.join(in_dir, wav_file)       
-        samples, _ = librosa.load(wav_path, sr=sample_rate)
-        sp, yphase = FFT_filter(samples, 128, 23, 128)
-        data.append(sp)
-        parameter.append([yphase, wav_file.replace(wav_list, '')])
+    file_list = os.listdir(in_dir)
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    with open(os.path.join(out_dir, out_filename + '_parameter.txt'), 'wb') as fp:
-        pickle.dump(parameter, fp)# indent=4
-    with open(os.path.join(out_dir, out_filename + '.txt'), 'wb') as fp:
-        pickle.dump(data, fp)# indent=4
 
+    if out_filename == "clean":
+        for mat_file in file_list:
+            if not wav_file.endswith('.mat'):
+                continue
+            mat_path = os.path.join(in_dir, mat_file)       
+            samples = loadmat(mat_path)['bandFTM']
+            data.append(samples)
+        
+        with open(os.path.join(out_dir, out_filename + '.txt'), 'wb') as fp:
+            pickle.dump(data, fp)# indent=4
+    else:
+        for wav_file in file_list:
+            if not wav_file.endswith('.wav'):
+                continue
+            wav_path = os.path.join(in_dir, wav_file)       
+            samples, _ = librosa.load(wav_path, sr=sample_rate)
+            sp, yphase = FFT_filter(samples, 128, 18, 128)
+            data.append(sp)
+            parameter.append([yphase, wav_file.replace(file_list, '')])
+
+        with open(os.path.join(out_dir, out_filename + '_parameter.txt'), 'wb') as fp:
+            pickle.dump(parameter, fp)# indent=4
+        with open(os.path.join(out_dir, out_filename + '.txt'), 'wb') as fp:
+            pickle.dump(data, fp)# indent=4
 
 def preprocess(args):
     for data_type in ['tr', 'cv', 'tt']:
