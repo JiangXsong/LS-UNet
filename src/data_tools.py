@@ -47,7 +47,7 @@ def mat_load(file, in_dir):
     
     return samples, length
 
-def audio_to_numpy(in_dir, filename,  sample_rate, frame_length, min_duration, hop_length_frame):
+def audio_to_numpy(in_dir,  sample_rate, frame_length, min_duration, hop_length_frame):
     in_dir = os.path.abspath(in_dir)
     file_list = os.listdir(in_dir)
     file_list.sort()
@@ -82,6 +82,7 @@ def clean_file_to_matrix(in_dir, repeat, dim_square_spec):
     for _ in range(repeat):
         list_target_array.extend(list_target_array)
 
+    '''
     numpy_target = np.vstack(list_target_array)
     nb_target = numpy_target.shape[0]
 
@@ -89,9 +90,9 @@ def clean_file_to_matrix(in_dir, repeat, dim_square_spec):
 
     for i in range(nb_target):
         n_ftm[i, :, :] = numpy_target[i]
+    '''
 
-
-    return n_ftm
+    return list_target_array
 
 def audio_to_spec(audio, n_fft=128, hop_length=18):
     '''
@@ -109,11 +110,12 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, dim_square_spec, n_fft, hop_l
     (nb_frame,dim_square_spec,dim_square_spec)"""
 
     nb_audio = numpy_audio.shape[0]
-    #dim_square_spec = int(n_fft / 2) + 1
-    m_mag = np.zeros((nb_audio, dim_square_spec, dim_square_spec)) #(_ , 行, 列)
-    m_phase = np.zeros((nb_audio, dim_square_spec, dim_square_spec), dtype=complex)
+    m_mag = []
+    m_phase = []
 
     for i in range(nb_audio):
-        m_mag[i, :, :], m_phase[i, :, :] = audio_to_spec(numpy_audio[i], n_fft, hop_length_fft)
+        mag, phase = audio_to_spec(numpy_audio[i], n_fft, hop_length_fft)
+        m_mag.append(mag)
+        m_phase.append(phase)
 
     return m_mag, m_phase

@@ -28,16 +28,9 @@ import torch.utils.data as data
 
 import librosa
 
-def append_data(data, clean_infos, datas_train, label_train):  
-    for i in range(len(data)):
-        datas_train.append(data[i])
-        label_train.append(clean_infos[i%len(clean_infos)])
-        
-    return datas_train, label_train
-
 class AudioDataset(data.Dataset):
 
-    def __init__(self, txt_dir):
+    def __init__(self, numpy_dir, segment_len=1):
         """
         Args:
             json_dir: directory including mix.json, s1.json and s2.json
@@ -46,73 +39,40 @@ class AudioDataset(data.Dataset):
         xxx_infos is a list and each item is a tuple (wav_file, #samples)
         """
         super(AudioDataset, self).__init__()
-        Noise_02 = os.path.join(txt_dir, '-2dB.txt')
-        Noise_06 = os.path.join(txt_dir, '-6dB.txt')
-        Noise_2 = os.path.join(txt_dir, '2dB.txt')
-        Noise_6 = os.path.join(txt_dir, '6dB.txt')
-        Clean = os.path.join(txt_dir, 'clean.txt')
-        with open(Noise_02, 'rb') as fp:
-            Noise_02_infos = pickle.load(fp)
-        with open(Noise_06, 'rb') as fp:
-            Noise_06_infos = pickle.load(fp)
-        with open(Noise_2, 'rb') as fp:
-            Noise_2_infos = pickle.load(fp)
-        with open(Noise_6, 'rb') as fp:
-            Noise_6_infos = pickle.load(fp)
-        self.datas = [Noise_02_infos, Noise_06_infos, Noise_2_infos, Noise_6_infos]
-        with open(Clean, 'rb') as fp:
-            clean_infos = pickle.load(fp)
-        self.datas_train = []
-        self.label_train = []
-        for i in range(len(self.datas)):
-            self.datas_train, self.label_train = append_data(self.datas[i], clean_infos, self.datas_train, self.label_train)
+        X_in = np.load(os.path.join(numpy_dir, 'noise_Spec.npy'))
+        X_out = np.load(os.path.join(numpy_dir, 'clean.npy'))
+
+        if segment_len >= 0.0:
+
+            segment_data, segment_clean = [], []
+
+            for data, target in zip(X_in, X_out):
+                total_segment_len = data.shape[1]
+                length = total_segment_len * (segment_len/4)
+
+                for i in range(0, data.shape[1], length):
+                    segment_data.append(data[:, i:i+length])
+                    segment_clean.append(target[:, i:i+length]) 
+        else:
+            for data, target in zip(X_in, X_out):
+                segment_data.append(data)
+                segment_clean.append(target)
+
+        # perform padding and convert to tensor
+        pad_value = 0
+        data_pad = pad_list([torch.from_numpy(n).float()
+                             for n in segment_data], pad_value)
+        sources_pad = pad_list([torch.from_numpy(s).float()
+                                for s in segment_clean], pad_value)
+        
+        self.data = data_pad
+        self.clean = sources_pad
 
     def __getitem__(self, index):
-        xt = torch.Tensor(np.array(self.datas_train[index]))
-        yt = torch.Tensor(np.array(self.label_train[index]))
-        return xt, yt
+        return self.data[index], self.clean[index]
 
     def __len__(self):
-        return len(self.datas)
-
-
-class AudioDataLoader(data.DataLoader):
-    """
-    NOTE: just use batchsize=1 here, so drop_last=True makes no sense here.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(AudioDataLoader, self).__init__(*args, **kwargs)
-        self.collate_fn = _collate_fn
-
-
-def _collate_fn(batch):
-    """
-    Args:
-        batch: list, len(batch) = 1. See AudioDataset.__getitem__()
-    Returns:
-        mixtures_pad: B x T, torch.Tensor
-        ilens : B, torch.Tentor
-        sources_pad: B x C x T, torch.Tensor
-    """
-    # batch should be located in list
-    assert len(batch) == 1
-    mixtures, sources = load_mixtures_and_sources(batch[0])
-
-    # get batch of lengths of input sequences
-    ilens = np.array([mix.shape[0] for mix in mixtures])
-
-    # perform padding and convert to tensor
-    pad_value = 0
-    mixtures_pad = pad_list([torch.from_numpy(mix).float()
-                             for mix in mixtures], pad_value)
-    ilens = torch.from_numpy(ilens)
-    sources_pad = pad_list([torch.from_numpy(s).float()
-                            for s in sources], pad_value)
-    # N x T x C -> N x C x T
-    sources_pad = sources_pad.permute((0, 2, 1)).contiguous()
-    return mixtures_pad, ilens, sources_pad
-
+        return len(self.data)
 
 # Eval data part
 from preprocess import preprocess_one_dir
@@ -156,98 +116,7 @@ class EvalDataset(data.Dataset):
     def __len__(self):
         return len(self.minibatch)
 
-
-class EvalDataLoader(data.DataLoader):
-    """
-    NOTE: just use batchsize=1 here, so drop_last=True makes no sense here.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(EvalDataLoader, self).__init__(*args, **kwargs)
-        self.collate_fn = _collate_fn_eval
-
-
-def _collate_fn_eval(batch):
-    """
-    Args:
-        batch: list, len(batch) = 1. See AudioDataset.__getitem__()
-    Returns:
-        mixtures_pad: B x T, torch.Tensor
-        ilens : B, torch.Tentor
-        filenames: a list contain B strings
-    """
-    # batch should be located in list
-    assert len(batch) == 1
-    mixtures, filenames = load_mixtures(batch[0])
-
-    # get batch of lengths of input sequences
-    ilens = np.array([mix.shape[0] for mix in mixtures])
-
-    # perform padding and convert to tensor
-    pad_value = 0
-    mixtures_pad = pad_list([torch.from_numpy(mix).float()
-                             for mix in mixtures], pad_value)
-    ilens = torch.from_numpy(ilens)
-    return mixtures_pad, ilens, filenames
-
-
 # ------------------------------ utils ------------------------------------
-def load_mixtures_and_sources(batch):
-    """
-    Each info include wav path and wav duration.
-    Returns:
-        mixtures: a list containing B items, each item is T np.ndarray
-        sources: a list containing B items, each item is T x C np.ndarray
-        T varies from item to item.
-    """
-    mixtures, sources = [], []
-    mix_infos, s1_infos, s2_infos, sample_rate, segment_len = batch
-    # for each utterance
-    for mix_info, s1_info, s2_info in zip(mix_infos, s1_infos, s2_infos):
-        mix_path = mix_info[0]
-        s1_path = s1_info[0]
-        s2_path = s2_info[0]
-        assert mix_info[1] == s1_info[1] and s1_info[1] == s2_info[1]
-        # read wav file
-        mix, _ = librosa.load(mix_path, sr=sample_rate)
-        s1, _ = librosa.load(s1_path, sr=sample_rate)
-        s2, _ = librosa.load(s2_path, sr=sample_rate)
-        # merge s1 and s2
-        s = np.dstack((s1, s2))[0]  # T x C, C = 2
-        utt_len = mix.shape[-1]
-        if segment_len >= 0:
-            # segment
-            for i in range(0, utt_len - segment_len + 1, segment_len):
-                mixtures.append(mix[i:i+segment_len])
-                sources.append(s[i:i+segment_len])
-            if utt_len % segment_len != 0:
-                mixtures.append(mix[-segment_len:])
-                sources.append(s[-segment_len:])
-        else:  # full utterance
-            mixtures.append(mix)
-            sources.append(s)
-    return mixtures, sources
-
-
-def load_mixtures(batch):
-    """
-    Returns:
-        mixtures: a list containing B items, each item is T np.ndarray
-        filenames: a list containing B strings
-        T varies from item to item.
-    """
-    mixtures, filenames = [], []
-    mix_infos, sample_rate = batch
-    # for each utterance
-    for mix_info in mix_infos:
-        mix_path = mix_info[0]
-        # read wav file
-        mix, _ = librosa.load(mix_path, sr=sample_rate)
-        mixtures.append(mix)
-        filenames.append(mix_path)
-    return mixtures, filenames
-
-
 def pad_list(xs, pad_value):
     n_batch = len(xs)
     max_len = max(x.size(0) for x in xs)
