@@ -40,7 +40,7 @@ def prepare_data(args):
 
     elif data_type == 'cv':
       snr_list = ['-5dB']
-      prepare_one_dir(data_type, out_dir, snr_list)
+      prepare_one_dir(data_type, args.in_dir, out_dir, snr_list, args.sample_rate, args.frame_length, args.n_fft)
 
     else:
       print('Please checkout your filename! ')
