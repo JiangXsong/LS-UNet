@@ -113,7 +113,6 @@ def main(args):
     solver = Solver(data, model, optimizier, args)
     solver.train()
 
-
 if __name__ == '__main__':
     args = parser.parse_args()
     print(args)

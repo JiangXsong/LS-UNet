@@ -79,7 +79,7 @@ class Solver(object):
                                                        cv_loss=self.cv_loss),
                            file_path)
                 print('Saving checkpoint model to %s' % file_path)
-            '''
+            
             # Cross validation
             print('Cross validation...')
             self.model.eval()  # Turn off Batchnorm & Dropout
@@ -123,7 +123,7 @@ class Solver(object):
                                                        cv_loss=self.cv_loss),
                            file_path)
                 print("Find better validated model, saving to %s" % file_path)
-            '''
+            
     def _run_one_epoch(self, epoch, cross_valid=False):
         start = time.time()
         total_loss = 0
