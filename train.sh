@@ -13,6 +13,7 @@ sample_rate=16000
 
 # Training config
 use_cuda=1
+id=0
 epochs=100
 half_lr=1
 early_stop=0
