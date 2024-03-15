@@ -42,7 +42,7 @@ class LateSupUnet(nn.Module):
 		return output
 
 class Channel_select(nn.Module):
-    def __init__(self,):
+    def __init__(self):
         super(Channel_select, self).__init__()
         self.l1 = nn.Linear( 65, 1024 )
         self.l2 = nn.Linear( 1024, 512 )

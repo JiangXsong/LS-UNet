@@ -9,7 +9,7 @@ import torch
 
 from data import AudioDataset
 from solver import Solver
-from convolutional_models import LateSupUnet
+from convolutional_models import Deep_ElectroNet
 
 parser = argparse.ArgumentParser(
     "Fully-Convolutional Time-domain Audio Separation Network (Conv-TasNet) "
@@ -20,9 +20,9 @@ parser.add_argument('--train_dir', type=str, default=None,
                     help='directory including mix.json, s1.json and s2.json')
 parser.add_argument('--valid_dir', type=str, default=None,
                     help='directory including mix.json, s1.json and s2.json')
-#parser.add_argument('--sample_rate', default=16000, type=int,
-#                    help='Sample rate')
-#parser.add_argument('--segment', default=4, type=float,
+parser.add_argument('--sample_rate', default=16000, type=int,
+                    help='Sample rate')
+#parser.add_argument('--segment_len', default=1, type=float,
 #                    help='Segment length (seconds)')
 #parser.add_argument('--cv_maxlen', default=8, type=float,
 #                    help='max audio length (seconds) in cv, to avoid OOM issue.')
@@ -89,7 +89,7 @@ def main(args):
     cv_loader = DataLoader(cv_dataset ,batch_size = 1, shuffle=args.shuffle)
     data = {'tr_loader': tr_loader, 'cv_loader': cv_loader}
     # model
-    model = LateSupUnet(n_channels=1, bilinear=False)
+    model = Deep_ElectroNet()
     print(model)
     if args.use_cuda:
         model = torch.nn.DataParallel(model)

@@ -26,11 +26,12 @@ import numpy as np
 import torch
 import torch.utils.data as data
 
+
 import librosa
 
 class AudioDataset(data.Dataset):
 
-    def __init__(self, numpy_dir, segment_len=1):
+    def __init__(self, numpy_dir):
         """
         Args:
             json_dir: directory including mix.json, s1.json and s2.json
@@ -42,31 +43,11 @@ class AudioDataset(data.Dataset):
         X_in = np.load(os.path.join(numpy_dir, 'noise_Spec.npy'))
         X_out = np.load(os.path.join(numpy_dir, 'clean.npy'))
 
-        if segment_len >= 0.0:
-
-            segment_data, segment_clean = [], []
-
-            for data, target in zip(X_in, X_out):
-                total_segment_len = data.shape[1]
-                length = total_segment_len * (segment_len/4)
-
-                for i in range(0, data.shape[1], length):
-                    segment_data.append(data[:, i:i+length])
-                    segment_clean.append(target[:, i:i+length]) 
-        else:
-            for data, target in zip(X_in, X_out):
-                segment_data.append(data)
-                segment_clean.append(target)
-
-        # perform padding and convert to tensor
-        pad_value = 0
-        data_pad = pad_list([torch.from_numpy(n).float()
-                             for n in segment_data], pad_value)
-        sources_pad = pad_list([torch.from_numpy(s).float()
-                                for s in segment_clean], pad_value)
+        data = [torch.from_numpy(X_in).float()]
+        sources = [torch.from_numpy(X_out).float()]
         
-        self.data = data_pad
-        self.clean = sources_pad
+        self.data = data
+        self.clean = sources
 
     def __getitem__(self, index):
         return self.data[index], self.clean[index]
@@ -130,7 +111,7 @@ if __name__ == "__main__":
     import sys
     json_dir, batch_size = sys.argv[1:3]
     dataset = AudioDataset(json_dir, int(batch_size))
-    data_loader = AudioDataLoader(dataset, batch_size=1,
+    data_loader = data.DataLoader(dataset, batch_size=1,
                                   num_workers=4)
     for i, batch in enumerate(data_loader):
         mixtures, lens, sources = batch

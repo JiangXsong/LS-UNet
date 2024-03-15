@@ -22,20 +22,20 @@ def audio_frame_stack(sound_data, frame_length, hop_length_frame):
     '''
         分段成同樣長度的frame並堆疊
     '''
-    sequence_sample_length = sound_data.shape[0]
+    sequence_sample_length = len(sound_data)
     sound_data_list = [sound_data[start:start + frame_length] for start in range(0, sequence_sample_length-frame_length+1, hop_length_frame)]
     sound_data_array = np.vstack(sound_data_list)
 
     return sound_data_array
 
-def wav_load(file, in_dir, sample_rate):
+def wav_load(file_path, sample_rate):
     '''
         load wav files
     '''
-    samples, sr = librosa.load(os.path.join(in_dir, file), sr=sample_rate)
-    total_duration = librosa.get_duration(samples=samples, sr=sr) #單位 -> s
+    y, sr = librosa.load(file_path, sr=sample_rate)
+    total_duration = librosa.get_duration(y=y, sr=sr) #單位 -> s
 
-    return samples, total_duration
+    return y, total_duration
 
 def mat_load(file, in_dir):
     '''
@@ -47,24 +47,30 @@ def mat_load(file, in_dir):
     
     return samples, length
 
-def audio_to_numpy(in_dir,  sample_rate, frame_length, min_duration, hop_length_frame):
+def audio_to_numpy(in_dir,  sample_rate, frame_length, hop=False):
     in_dir = os.path.abspath(in_dir)
     file_list = os.listdir(in_dir)
     file_list.sort()
 
     list_sound_array = []
+    if not hop:
+        hop_length_frame = frame_length
 
     for file in file_list:                   
         #資料夾中的音檔轉成numpy
-        sp, total_duration = wav_load(file, in_dir, sample_rate)
+        file_path = os.path.join(in_dir, file)
+        sp, total_duration = wav_load(file_path, sample_rate)
+        nb_sample = total_duration * sample_rate
 
-        samples = split_audio(sp, frame_length) #frame_length=64000
-
-        list_sound_array.append(samples)
+        if (nb_sample >= frame_length):
+            list_sound_array.append(audio_frame_stack(sp, frame_length, hop_length_frame))
+        else:
+            print(
+                f"The following file {file_path} is below the min duration")
 
     return np.vstack(list_sound_array)
 
-def clean_file_to_matrix(in_dir, repeat, dim_square_spec):
+def clean_file_to_matrix(in_dir, frame_length, repeat, dim_square_spec):
     '''
         載入mat檔，並做成training target dataset
     '''
@@ -72,27 +78,26 @@ def clean_file_to_matrix(in_dir, repeat, dim_square_spec):
     file_list = os.listdir(in_dir)
     file_list.sort()
 
-    list_target_array = []
+    list_target_array, list_target = [], []
         
     for file in file_list:
         samples, length = mat_load(file, in_dir)
+        for i in range(0, length, frame_length):
+            list_target_array.append(samples[:, i:i+frame_length])
 
-        list_target_array.append(samples)
-
-    for _ in range(repeat):
-        list_target_array.extend(list_target_array)
-
-    '''
-    numpy_target = np.vstack(list_target_array)
+    if repeat > 0:
+        for _ in range(repeat):
+            list_target.extend(list_target_array)
+    
+    numpy_target = np.vstack(list_target)
     nb_target = numpy_target.shape[0]
 
-    n_ftm = np.zeros((nb_target, length, dim_square_spec))
+    n_ftm = np.zeros((nb_target, frame_length, dim_square_spec))
 
     for i in range(nb_target):
         n_ftm[i, :, :] = numpy_target[i]
-    '''
-
-    return list_target_array
+    
+    return n_ftm
 
 def audio_to_spec(audio, n_fft=128, hop_length=18):
     '''
@@ -104,18 +109,16 @@ def audio_to_spec(audio, n_fft=128, hop_length=18):
 
     return stftaudio_magnitude, stftaudio_phase
 
-def numpy_audio_to_matrix_spectrogram(numpy_audio, dim_square_spec, n_fft, hop_length_fft):
+def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, dim_square_spec, n_fft, hop_length_fft):
     """This function takes as input a numpy audi of size (nb_frame,frame_length), and return
     a numpy containing the matrix spectrogram for amplitude in dB and phase. It will have the size
     (nb_frame,dim_square_spec,dim_square_spec)"""
 
     nb_audio = numpy_audio.shape[0]
-    m_mag = []
-    m_phase = []
+    m_mag = np.zeros((nb_audio, frame_length, dim_square_spec))
+    m_phase = np.zeros((nb_audio, frame_length, dim_square_spec), dtype=complex)
 
     for i in range(nb_audio):
-        mag, phase = audio_to_spec(numpy_audio[i], n_fft, hop_length_fft)
-        m_mag.append(mag)
-        m_phase.append(phase)
+        m_mag[i, :, :], m_phase[i, :, :] = audio_to_spec(numpy_audio[i], n_fft, hop_length_fft)
 
     return m_mag, m_phase

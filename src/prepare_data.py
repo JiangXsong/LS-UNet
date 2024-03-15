@@ -18,21 +18,26 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, frame_len
                                           sample_rate=sample_rate,
                                           frame_length=frame_length))    
   noise_data_array = np.vstack(noise_data_list)
-  #dim_square_spec = int(args.n_fft/2)+1
+  dim_square_spec = int(n_fft/2)+1
 
-  sp_noise, yphase = numpy_audio_to_matrix_spectrogram(noise_data_array, n_fft, hop_length_fft=18)
+  sp_noise, yphase = numpy_audio_to_matrix_spectrogram(noise_data_array,
+                                                       frame_length,
+                                                       dim_square_spec,
+                                                       n_fft,
+                                                       hop_length_fft=18)
     
-  np.save(out_dir + 'noise_Spec', sp_noise)    
-  np.save(out_dir + 'noise_Phase', yphase)
+  np.save(out_dir + '/noise_Spec', sp_noise)    
+  np.save(out_dir + '/noise_Phase', yphase)
 
   clean_path = os.path.join(in_dir, data_type, 'clean')
   if os.path.exists(clean_path):
-    sp_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), len(snr_list))
-    np.save(out_dir + 'clean', sp_clean)
+    repeat = len(snr_list) - 1
+    sp_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), repeat, dim_square_spec)
+    np.save(out_dir + '/clean', sp_clean)
 
 def prepare_data(args):
   for data_type in ['tr', 'cv', 'tt']:
-    out_dir = os.path.join(data_type, args.out_dir, data_type)
+    out_dir = os.path.join(args.out_dir, data_type)
 
     if data_type == 'tr':
       snr_list = ['-2dB', '-6dB', '2dB', "6dB"]
@@ -55,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument('--sample_rate', type=int, default=16000,
                         help='Sample rate of audio file')
     parser.add_argument('--n_fft', type=int, default=128)
-    parser.add_argument('--frame_length', type=int, default=64000) #4(s)*16000
+    parser.add_argument('--frame_length', type=int, default=1024) #4(s)*16000
     args = parser.parse_args()
     print(args)
     prepare_data(args)
