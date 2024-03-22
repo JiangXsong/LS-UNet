@@ -16,13 +16,12 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, frame_len
   for snr in snr_list:      
     noise_data_list.append(audio_to_numpy(os.path.join(in_dir, data_type, snr),
                                           sample_rate=sample_rate,
-                                          frame_length=frame_length))    
+                                          length=64512))    
   noise_data_array = np.vstack(noise_data_list)
-  dim_square_spec = int(n_fft/2)+1
+  #dim_square_spec = int(n_fft/2)+1
 
   sp_noise, yphase = numpy_audio_to_matrix_spectrogram(noise_data_array,
                                                        frame_length,
-                                                       dim_square_spec,
                                                        n_fft,
                                                        hop_length_fft=18)
     
@@ -32,7 +31,7 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, frame_len
   clean_path = os.path.join(in_dir, data_type, 'clean')
   if os.path.exists(clean_path):
     repeat = len(snr_list) - 1
-    sp_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), repeat, dim_square_spec)
+    sp_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), frame_length, repeat)
     np.save(out_dir + '/clean', sp_clean)
 
 def prepare_data(args):
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     parser.add_argument('--sample_rate', type=int, default=16000,
                         help='Sample rate of audio file')
     parser.add_argument('--n_fft', type=int, default=128)
-    parser.add_argument('--frame_length', type=int, default=1024) #4(s)*16000
+    parser.add_argument('--frame_length', type=int, default=128) #4(s)*16000
     args = parser.parse_args()
     print(args)
     prepare_data(args)

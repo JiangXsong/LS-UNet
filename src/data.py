@@ -26,9 +26,6 @@ import numpy as np
 import torch
 import torch.utils.data as data
 
-
-import librosa
-
 class AudioDataset(data.Dataset):
 
     def __init__(self, numpy_dir):
@@ -43,8 +40,8 @@ class AudioDataset(data.Dataset):
         X_in = np.load(os.path.join(numpy_dir, 'noise_Spec.npy'))
         X_out = np.load(os.path.join(numpy_dir, 'clean.npy'))
 
-        data = [torch.from_numpy(X_in).float()]
-        sources = [torch.from_numpy(X_out).float()]
+        data = torch.from_numpy(X_in).float()
+        sources = torch.from_numpy(X_out).float()
         
         self.data = data
         self.clean = sources

@@ -12,7 +12,7 @@ train_dir=$dumpdir/tr
 valid_dir=$dumpdir/cv
 sample_rate=16000
 n_fft=128
-frame_length=1024
+frame_length=128
 
 # Training config
 use_cuda=1
@@ -46,7 +46,7 @@ ngpu=1 # always 1
 if [ $stage -le 1 ]; then
   echo "Stage 1: Generating json files including wav path and duration"
   [ ! -d $dumpdir ] && mkdir $dumpdir
-  prepare_data.py --in_dir $speech --out_dir $dumpdir --sample-rate $sample_rate --n_fft $n_fft --frame_length $frame_length
+  prepare_data.py --in_dir $speech --out_dir $dumpdir --sample_rate $sample_rate --n_fft $n_fft --frame_length $frame_length
 fi
 
 
