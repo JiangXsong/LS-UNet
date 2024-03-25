@@ -38,7 +38,7 @@ class LateSupUnet(nn.Module):
 		x = self.up3(x, x2) 
 		x = self.up4(x, x1)
 		x = self.outc(x)
-		output = (input - x)      #.squeeze(0).squeeze(0)
+		output = (input - x)     #.squeeze(0).squeeze(0)
 		return output
 
 class Channel_select(nn.Module):
@@ -51,8 +51,8 @@ class Channel_select(nn.Module):
         self.relu = nn.ReLU()
     
     def forward(self, input):
-
-        x = self.l1(input)
+        x = input.permute(0, 2, 1)
+        x = self.l1(x)
         x = self.relu(x)
         x = self.l2(x)
         x = self.relu(x)
@@ -80,6 +80,8 @@ class Deep_ElectroNet(nn.Module):
 
 	def forward(self, input):
 		x = self.LS_UNet(input)
+		x = x.squeeze(0)
+		#print("x ", x.shape)
 		x = self.CS(x)
 		x = x.squeeze(0)
 

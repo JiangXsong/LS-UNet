@@ -84,6 +84,8 @@ def clean_file_to_matrix(in_dir, frame_length, repeat):
         samples, length = mat_load(file, in_dir)
         for i in range(0, length, frame_length):
             list_target_array.append(samples[:, i:i+frame_length])
+            
+        #print("clean files list ",len(list_target_array))
 
     if repeat > 0:
         for _ in range(repeat):
@@ -103,7 +105,7 @@ def audio_to_spec(audio, n_fft=128, hop_length=18):
     '''
         短時傅立葉轉換 STFT
     '''
-    stftaudio = librosa.stft(audio, n_fft, hop_length, window='hamming')
+    stftaudio = librosa.stft(audio, n_fft=n_fft, hop_length=hop_length, window='hamming')
     stftaudio_magnitude, stftaudio_phase = librosa.magphase(stftaudio)
     #stftaudio_magnitude_db = librosa.amplitude_to_db(stftaudio_magnitude, ref=np.max)
 
@@ -122,9 +124,12 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, n_fft, hop_leng
         mag, phase = audio_to_spec(numpy_audio[i], n_fft, hop_length_fft)
         m_phase.append(phase)
         length = mag.shape[1]
-        
-        for start in range(0, length, frame_length):
+        #print(length)
+        c = 0
+        for start in range(0, length-1, frame_length):
             m_mag.append(mag[:, start:start+frame_length])
+            c+=1
+        #print(c)
 
 
     return m_mag, m_phase

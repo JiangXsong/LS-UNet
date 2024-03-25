@@ -43,6 +43,9 @@ class AudioDataset(data.Dataset):
         data = torch.from_numpy(X_in).float()
         sources = torch.from_numpy(X_out).float()
         
+        print(X_in.shape)
+        print(X_out.shape)
+        
         self.data = data
         self.clean = sources
 

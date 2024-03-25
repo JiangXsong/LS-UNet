@@ -24,18 +24,19 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, frame_len
                                                        frame_length,
                                                        n_fft,
                                                        hop_length_fft=18)
-    
+  print("sp_noise ", len(sp_noise))  
   np.save(out_dir + '/noise_Spec', sp_noise)    
   np.save(out_dir + '/noise_Phase', yphase)
 
   clean_path = os.path.join(in_dir, data_type, 'clean')
   if os.path.exists(clean_path):
-    repeat = len(snr_list) - 1
+    repeat = len(snr_list) 
     sp_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), frame_length, repeat)
+    print("sp_clean ", len(sp_clean))
     np.save(out_dir + '/clean', sp_clean)
 
 def prepare_data(args):
-  for data_type in ['tr', 'cv', 'tt']:
+  for data_type in ['tr', 'cv']:
     out_dir = os.path.join(args.out_dir, data_type)
 
     if data_type == 'tr':

@@ -2,7 +2,7 @@
 
 # -- START IMPORTANT
 speech=/home/song/LS-UNet/audio   #audio path
-stage=1
+stage=2
 # -- END
 
 dumpdir=data  #directory ro put generated json file

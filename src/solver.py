@@ -65,7 +65,7 @@ class Solver(object):
             tr_avg_loss = self._run_one_epoch(epoch)
             print('-' * 85)
             print('Train Summary | End of Epoch {0} | Time {1:.2f}s | '
-                  'Train Loss {2:.3f}'.format(
+                  'Train Loss {2:.5f}'.format(
                       epoch + 1, time.time() - start, tr_avg_loss))
             print('-' * 85)
 
@@ -73,11 +73,7 @@ class Solver(object):
             if self.checkpoint:
                 file_path = os.path.join(
                     self.save_folder, 'epoch%d.pth.tar' % (epoch + 1))
-                torch.save(self.model.module.serialize(self.model.module,
-                                                       self.optimizer, epoch + 1,
-                                                       tr_loss=self.tr_loss,
-                                                       cv_loss=self.cv_loss),
-                           file_path)
+                torch.save(self.model.state_dict(), file_path)
                 print('Saving checkpoint model to %s' % file_path)
             
             # Cross validation
@@ -86,7 +82,7 @@ class Solver(object):
             val_loss = self._run_one_epoch(epoch, cross_valid=True)
             print('-' * 85)
             print('Valid Summary | End of Epoch {0} | Time {1:.2f}s | '
-                  'Valid Loss {2:.3f}'.format(
+                  'Valid Loss {2:.5f}'.format(
                       epoch + 1, time.time() - start, val_loss))
             print('-' * 85)
 
@@ -117,11 +113,7 @@ class Solver(object):
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 file_path = os.path.join(self.save_folder, self.model_path)
-                torch.save(self.model.module.serialize(self.model.module,
-                                                       self.optimizer, epoch + 1,
-                                                       tr_loss=self.tr_loss,
-                                                       cv_loss=self.cv_loss),
-                           file_path)
+                torch.save(self.model.state_dict(), file_path)
                 print("Find better validated model, saving to %s" % file_path)
             
     def _run_one_epoch(self, epoch, cross_valid=False):
@@ -135,9 +127,15 @@ class Solver(object):
             if self.use_cuda:
                 xt = xt.cuda()
                 yt = yt.cuda()
+            
+            #print("xt ", xt.shape)
+            #print("yt ", yt.shape)
                 
             xa = xt.unsqueeze(0)
             ya = yt.squeeze(0)
+            
+            #print("xa ", xa.shape)
+            #print("ya ", ya.shape)
             
             output = self.model(xa)
             loss = self.criterion(output, ya)
@@ -152,8 +150,8 @@ class Solver(object):
 
             if i % self.print_freq == 0:
                 
-                print('Epoch {0} | Iter {1} | Average Loss {2:.3f} | '
-                      'Current Loss {3:.6f} | {4:.1f} ms/batch'.format(
+                print('Epoch {0} | Iter {1} | Average Loss {2:.5f} | '
+                      'Current Loss {3:.7f} | {4:.1f} ms/batch'.format(
                           epoch + 1, i + 1, total_loss / (i + 1),
                           loss.item(), 1000 * (time.time() - start) / (i + 1)),
                       flush=True)
