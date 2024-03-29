@@ -82,8 +82,8 @@ class Deep_ElectroNet(nn.Module):
 		x = self.LS_UNet(input)
 		x = x.squeeze(0)
 		#print("x ", x.shape)
-		x = self.CS(x)
-		x = x.squeeze(0)
+		output = self.CS(x)
+		output = output.squeeze(0)
 
-		return x
+		return output, x.squeeze(0)
 

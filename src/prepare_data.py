@@ -31,9 +31,10 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, frame_len
   clean_path = os.path.join(in_dir, data_type, 'clean')
   if os.path.exists(clean_path):
     repeat = len(snr_list) 
-    sp_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), frame_length, repeat)
-    print("sp_clean ", len(sp_clean))
-    np.save(out_dir + '/clean', sp_clean)
+    FTM_clean, FFT_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), frame_length, repeat)
+    print("FTM_clean ", len(FTM_clean))
+    np.save(out_dir + '/FTM_clean', FTM_clean)
+    np.save(out_dir + '/FFTclean', FFT_clean)
 
 def prepare_data(args):
   for data_type in ['tr', 'cv']:

@@ -39,13 +39,15 @@ def wav_load(file_path, sample_rate):
 
 def mat_load(file, in_dir):
     '''
-        load mat files
+        load mat files: {'bandFTM', 'bandFFT'}
     '''
-    samples = loadmat(os.path.join(in_dir, file))['bandFTM']
-    samples = np.array(samples)
-    length = samples.shape[1]
+    data = loadmat(os.path.join(in_dir, file))#['bandFTM']['bandFFT']
+    FTM_samples = np.array(data['bandFTM'])
+    FFT_samples = np.array(data['bandFFT'])
+    FFT_samples = np.abs(FFT_samples)
+    #length = FTM_samples.shape[1]
     
-    return samples, length
+    return FTM_samples, FFT_samples
 
 def audio_to_numpy(in_dir,  sample_rate, length):
     '''
@@ -78,28 +80,19 @@ def clean_file_to_matrix(in_dir, frame_length, repeat):
     file_list = os.listdir(in_dir)
     file_list.sort()
 
-    list_target_array, list_target = [], []
+    list_FTM, list_FFT = [], []
         
     for file in file_list:
-        samples, length = mat_load(file, in_dir)
-        for i in range(0, length, frame_length):
-            list_target_array.append(samples[:, i:i+frame_length])
-            
-        #print("clean files list ",len(list_target_array))
+        FTM_samples, FFT_samples = mat_load(file, in_dir)
+        list_FTM_array = [FTM_samples[:, i:i+frame_length] for i in range(0, FTM_samples.shape[1], frame_length)]
+        list_FFT_array = [FFT_samples[:, i:i+frame_length] for i in range(0, FFT_samples.shape[1], frame_length)]
 
     if repeat > 0:
         for _ in range(repeat):
-            list_target.extend(list_target_array)
-    '''
-    numpy_target = np.vstack(list_target)
-    nb_target = numpy_target.shape[0]
+            list_FTM.extend(list_FTM_array)
+            list_FFT.extend(list_FFT_array)
 
-    n_ftm = np.zeros((nb_target, frame_length, dim_square_spec))
-
-    for i in range(nb_target):
-        n_ftm[i, :, :] = numpy_target[i]
-    '''
-    return list_target
+    return list_FTM, list_FFT
 
 def audio_to_spec(audio, n_fft=128, hop_length=18):
     '''
@@ -117,19 +110,14 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, n_fft, hop_leng
     (nb_frame,dim_square_spec,dim_square_spec)"""
 
     nb_audio = numpy_audio.shape[0]
-    m_mag = [] #[np.zeros((nb_audio, dim_square_spec, frame_length))]
+    #m_mag = [] #[np.zeros((nb_audio, dim_square_spec, frame_length))]
     m_phase = [] #np.zeros((nb_audio, dim_square_spec, frame_length), dtype=complex)
 
     for i in range(nb_audio):
         mag, phase = audio_to_spec(numpy_audio[i], n_fft, hop_length_fft)
         m_phase.append(phase)
         length = mag.shape[1]
-        #print(length)
-        c = 0
-        for start in range(0, length-1, frame_length):
-            m_mag.append(mag[:, start:start+frame_length])
-            c+=1
-        #print(c)
-
+        
+        m_mag = [mag[:, start:start+frame_length] for start in range(0, length-1, frame_length)]
 
     return m_mag, m_phase

@@ -38,19 +38,23 @@ class AudioDataset(data.Dataset):
         """
         super(AudioDataset, self).__init__()
         X_in = np.load(os.path.join(numpy_dir, 'noise_Spec.npy'))
-        X_out = np.load(os.path.join(numpy_dir, 'clean.npy'))
+        Y_FTM = np.load(os.path.join(numpy_dir, 'FTM_clean.npy'))
+        Y_FFT = np.load(os.path.join(numpy_dir, 'FFT_clean.npy'))
 
         data = torch.from_numpy(X_in).float()
-        sources = torch.from_numpy(X_out).float()
+        FTM_sources = torch.from_numpy(Y_FTM).float()
+        FFT_sources = torch.from_numpy(Y_FFT).float()
         
         print(X_in.shape)
-        print(X_out.shape)
+        print(FTM_sources.shape)
+        print(FFT_sources.shape)
         
         self.data = data
-        self.clean = sources
+        self.FTM = FTM_sources
+        self.FFT = FFT_sources
 
     def __getitem__(self, index):
-        return self.data[index], self.clean[index]
+        return self.data[index], self.FTM[index], self.FFT[index]
 
     def __len__(self):
         return len(self.data)
