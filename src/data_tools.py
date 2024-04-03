@@ -110,7 +110,7 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, n_fft, hop_leng
     (nb_frame,dim_square_spec,dim_square_spec)"""
 
     nb_audio = numpy_audio.shape[0]
-    #m_mag = [] #[np.zeros((nb_audio, dim_square_spec, frame_length))]
+    m_mag = [] #[np.zeros((nb_audio, dim_square_spec, frame_length))]
     m_phase = [] #np.zeros((nb_audio, dim_square_spec, frame_length), dtype=complex)
 
     for i in range(nb_audio):
@@ -118,6 +118,7 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, n_fft, hop_leng
         m_phase.append(phase)
         length = mag.shape[1]
         
-        m_mag = [mag[:, start:start+frame_length] for start in range(0, length-1, frame_length)]
+        for start in range(0, length-1, frame_length):
+            m_mag.append(mag[:, start:start+frame_length])
 
     return m_mag, m_phase

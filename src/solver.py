@@ -85,7 +85,7 @@ class Solver(object):
             print('Cross validation...')
             self.model.eval()  # Turn off Batchnorm & Dropout
             val_loss = self._run_one_epoch(epoch, loss_weigth, cross_valid=True)
-            val_loss_value = val_loss_value.append(val_loss)
+            val_loss_value.append(val_loss)
             print('-' * 85)
             print('Valid Summary | End of Epoch {0} | Time {1:.2f}s | '
                   'Valid Loss {2:.5f}'.format(
