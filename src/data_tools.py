@@ -13,7 +13,7 @@ def split_audio(sound_data, length, start=0):
     if sample_length >= length:
         sample_frame = sound_data[start:length]
     else:
-        sample_frame = sound_data
+        sample_frame = np.append(sound_data, np.zeros(length-sample_length))
         print("The sound file is below desired length")
 
     return sample_frame
@@ -72,7 +72,7 @@ def audio_to_numpy(in_dir,  sample_rate, length):
 
     return np.vstack(list_sound_array)
 
-def clean_file_to_matrix(in_dir, frame_length, repeat):
+def clean_file_to_matrix(in_dir, repeat, frame_length=256):
     '''
         載入mat檔，並做成training target dataset
     '''
@@ -80,19 +80,22 @@ def clean_file_to_matrix(in_dir, frame_length, repeat):
     file_list = os.listdir(in_dir)
     file_list.sort()
 
-    list_FTM, list_FFT = [], []
+    list_FTM, list_FTM_array = [], []
         
     for file in file_list:
         FTM_samples, FFT_samples = mat_load(file, in_dir)
-        list_FTM_array = [FTM_samples[:, i:i+frame_length] for i in range(0, FTM_samples.shape[1], frame_length)]
-        list_FFT_array = [FFT_samples[:, i:i+frame_length] for i in range(0, FFT_samples.shape[1], frame_length)]
+        
+        sp_len = FTM_samples.shape[1]
+        for start in range(0, sp_len-1, frame_length):
+            list_FTM_array.append(FTM_samples[:, start:start+frame_length])
+
 
     if repeat > 0:
         for _ in range(repeat):
             list_FTM.extend(list_FTM_array)
-            list_FFT.extend(list_FFT_array)
+            
 
-    return list_FTM, list_FFT
+    return list_FTM
 
 def audio_to_spec(audio, n_fft=128, hop_length=18):
     '''
@@ -122,3 +125,27 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, n_fft, hop_leng
             m_mag.append(mag[:, start:start+frame_length])
 
     return m_mag, m_phase
+
+def audio_to_mel_spec(in_dir, sr=16000, length=64000, n_fft=2048, hop_length=18, n_mels=128, frame_length=256):
+    '''
+        短時傅立葉轉換 STFT -> mel spectrogram
+    '''
+    in_dir = os.path.abspath(in_dir)
+    file_list = os.listdir(in_dir)
+    file_list.sort()
+
+    data_list = []
+
+    for file in file_list:
+        file_path = os.path.join(in_dir, file)
+        y, sr = librosa.load(file_path, sr=sr)
+        y = split_audio(y, length)
+       
+        melspec = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=n_fft, hop_length=hop_length, window='hamming', n_mels=n_mels)
+        melspec_db = librosa.power_to_db(melspec, ref=np.max)
+
+        sp_len = melspec_db.shape[1]
+        for start in range(0, sp_len-1, frame_length):
+            data_list.append(np.array(melspec_db[:, start:start+frame_length]))
+
+    return data_list

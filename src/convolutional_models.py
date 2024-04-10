@@ -38,16 +38,16 @@ class LateSupUnet(nn.Module):
 		x = self.up3(x, x2) 
 		x = self.up4(x, x1)
 		x = self.outc(x)
-		output = (input - x)     #.squeeze(0).squeeze(0)
-		return output
+		#output = (input - x)     #.squeeze(0).squeeze(0)
+		return x
 
 class Channel_select(nn.Module):
     def __init__(self):
         super(Channel_select, self).__init__()
-        self.l1 = nn.Linear( 65, 1024 )
-        self.l2 = nn.Linear( 1024, 512 )
-        self.l3 = nn.Linear( 512, 256 )
-        self.l4 = nn.Linear( 256, 22 )
+        self.l1 = nn.Linear(128, 64)
+        self.l2 = nn.Linear( 64, 22)
+        #self.l3 = nn.Linear( 512, 256 )
+        #self.l4 = nn.Linear( 256, 22 )
         self.relu = nn.ReLU()
     
     def forward(self, input):
@@ -56,9 +56,6 @@ class Channel_select(nn.Module):
         x = self.relu(x)
         x = self.l2(x)
         x = self.relu(x)
-        x = self.l3(x)
-        x = self.relu(x)
-        x = self.l4(x)
         x = x.permute(0, 2, 1)
         x = self.NofM_custom(x, 8)
         

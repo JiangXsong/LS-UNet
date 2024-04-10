@@ -59,7 +59,7 @@ class Solver(object):
     def train(self):
         # Train model multi-epoches
         tr_loss_value, val_loss_value = [], []
-        loss_weigth = [1.0, 1.0] #[mse_weigth, sl1_weigth]
+        loss_weigth = [3.0, 1.0] #[mse_weigth, sl1_weigth]
         
         for epoch in range(self.start_epoch, self.epochs):
             # Train one epoch
@@ -138,18 +138,18 @@ class Solver(object):
 
         data_loader = self.tr_loader if not cross_valid else self.cv_loader
 
-        for i, (xt,yftm,yfft) in enumerate(data_loader):
+        for i, (xt,yftm,clean) in enumerate(data_loader):
             #padded_mixture, mixture_lengths, padded_source = data
             if self.use_cuda:
                 xt = xt.cuda()
                 yftm = yftm.cuda()
-                yfft = yfft.cuda()
+                clean = clean.cuda()
             
             #print("xt ", xt.shape)
             #print("yt ", yt.shape)
                 
             xa = xt.unsqueeze(0)
-            ya = yfft.squeeze(0)
+            ya = clean.squeeze(0)
             yb = yftm.squeeze(0)
             
             #print("xa ", xa.shape)
