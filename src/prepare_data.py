@@ -19,8 +19,7 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
                                              length=64000,
                                              n_fft=n_fft,
                                              hop_length=18,
-                                             n_mels=128,
-                                             frame_length=256))  
+                                             n_mels=128))  
   
   '''    
     noise_data_list.append(audio_to_numpy(os.path.join(in_dir, data_type, snr),
@@ -42,8 +41,7 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
   if os.path.exists(clean_path):
     repeat = len(snr_list) 
     FTM_clean = clean_file_to_matrix(os.path.join(in_dir, data_type, 'clean'), 
-                                     repeat, 
-                                     frame_length=256)
+                                     repeat)
     print("FTM_clean ", len(FTM_clean))
     np.save(out_dir + '/FTM_clean', FTM_clean)
 
@@ -52,11 +50,11 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
                                          length=64000,
                                          n_fft=n_fft,
                                          hop_length=18,
-                                         n_mels=128,
-                                         frame_length=256)
+                                         n_mels=128)
   for _ in range(repeat):
     list_clean.extend(clean)
-  np.save(out_dir + '/clean', clean)
+  print("sp_noise ", len(list_clean))
+  np.save(out_dir + '/clean', list_clean)
     
 
 def prepare_data(args):
@@ -64,11 +62,11 @@ def prepare_data(args):
     out_dir = os.path.join(args.out_dir, data_type)
 
     if data_type == 'tr':
-      snr_list = ['-2dB', '-6dB', '2dB', "6dB"]
+      snr_list = ['-10.0', '-8.0', '-6.0', '-4.0', '-2.0', '0', '2.0', '4.0', '6.0', '8.0', '10.0']
       prepare_one_dir(data_type, args.in_dir, out_dir, snr_list, args.sample_rate, args.n_fft)
 
     elif data_type == 'cv':
-      snr_list = ['-5dB']
+      snr_list = ['-3.0', '-1.0', '1.0', '3.0']
       prepare_one_dir(data_type, args.in_dir, out_dir, snr_list, args.sample_rate, args.n_fft)
 
     else:
@@ -84,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument('--sample_rate', type=int, default=16000,
                         help='Sample rate of audio file')
     parser.add_argument('--n_fft', type=int, default=2048)
-    parser.add_argument('--frame_length', type=int, default=256) #4(s)*16000
+    #parser.add_argument('--frame_length', type=int, default=256) #4(s)*16000
     args = parser.parse_args()
     print(args)
     prepare_data(args)

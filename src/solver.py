@@ -147,15 +147,14 @@ class Solver(object):
             
             #print("xt ", xt.shape)
             #print("yt ", yt.shape)
-                
-            xa = xt.unsqueeze(0)
+            
             ya = clean.squeeze(0)
             yb = yftm.squeeze(0)
             
             #print("xa ", xa.shape)
             #print("ya ", ya.shape)
             
-            output, denoise = self.model(xa)
+            output, denoise = self.model(xt)
             loss = loss_weigth[0] * self.mse_loss(denoise, ya) + loss_weigth[1] * self.sl1_loss(output, yb)
             
             if not cross_valid:

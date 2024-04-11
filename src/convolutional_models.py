@@ -27,7 +27,7 @@ class LateSupUnet(nn.Module):
                 
 	def forward(self, input):
         #pdb.set_trace()
-        #input = input.unsqueeze(0)
+
 		x1 = self.inc(input)
 		x2 = self.down1(x1)
 		x3 = self.down2(x2)
@@ -51,8 +51,8 @@ class Channel_select(nn.Module):
         self.relu = nn.ReLU()
     
     def forward(self, input):
-        x = input.permute(0, 2, 1)
-        x = self.l1(x)
+        #x = input.permute(0, 2, 1)
+        x = self.l1(input)
         x = self.relu(x)
         x = self.l2(x)
         x = self.relu(x)
@@ -72,15 +72,35 @@ class Channel_select(nn.Module):
 class Deep_ElectroNet(nn.Module):
 	def __init__(self):
 		super(Deep_ElectroNet, self).__init__()
+		self.down_sp = nn.ModuleList()
+		self.down = nn.Conv1d(in_channels=3556, out_channels=2005, kernel_size=1, stride=1) #nn.Linear(3556, 2005)
+		self.up = nn.Conv1d(in_channels=125, out_channels=3556, kernel_size=1, stride=1)
+		
+		for _ in range(2):
+			self.down_sp.append(nn.Sequential(
+				nn.Conv1d(in_channels=128, out_channels=128, kernel_size=3, stride=2),
+				nn.ReLU(),
+				nn.MaxPool1d(2)		
+			))
+		
 		self.LS_UNet = LateSupUnet(1, True)
 		self.CS = Channel_select()
 
 	def forward(self, input):
-		x = self.LS_UNet(input)
-		x = x.squeeze(0)
-		#print("x ", x.shape)
+		input = input.permute(0, 2, 1)
+		input = self.down(input) #(1, 128, 3556) -> (1, 128, 2005)
+		input = input.permute(0, 2, 1)
+		for down_sampling in self.down_sp:
+			input = down_sampling(input) #(1, 128, 3556) -> (1, 128, 125)
+
+		input = input.unsqueeze(0) #(1, 128, 125) -> (1, 1, 128, 125)
+		x1 = self.LS_UNet(input)
+		x1 = x1.squeeze(0) #(1, 128, 125)
+		x1 = x1.permute(0, 2, 1) #(1, 125, 128)
+		x = self.up(x1) #(1, 3556, 128)
+		print("x ", x.shape)
 		output = self.CS(x)
 		output = output.squeeze(0)
 
-		return output, x.squeeze(0)
+		return output, x1.squeeze(0)
 

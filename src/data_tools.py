@@ -72,7 +72,7 @@ def audio_to_numpy(in_dir,  sample_rate, length):
 
     return np.vstack(list_sound_array)
 
-def clean_file_to_matrix(in_dir, repeat, frame_length=256):
+def clean_file_to_matrix(in_dir, repeat):
     '''
         載入mat檔，並做成training target dataset
     '''
@@ -83,18 +83,18 @@ def clean_file_to_matrix(in_dir, repeat, frame_length=256):
     list_FTM, list_FTM_array = [], []
         
     for file in file_list:
-        FTM_samples, FFT_samples = mat_load(file, in_dir)
-        
-        sp_len = FTM_samples.shape[1]
-        for start in range(0, sp_len-1, frame_length):
-            list_FTM_array.append(FTM_samples[:, start:start+frame_length])
+        FTM_samples, _ = mat_load(file, in_dir)
+        list_FTM_array.append(FTM_samples)
+        #sp_len = FTM_samples.shape[1]
+
+        #for start in range(0, sp_len-1, frame_length):
+        #    list_FTM_array.append(FTM_samples[:, start:start+frame_length])
 
 
     if repeat > 0:
         for _ in range(repeat):
             list_FTM.extend(list_FTM_array)
             
-
     return list_FTM
 
 def audio_to_spec(audio, n_fft=128, hop_length=18):
@@ -126,7 +126,7 @@ def numpy_audio_to_matrix_spectrogram(numpy_audio, frame_length, n_fft, hop_leng
 
     return m_mag, m_phase
 
-def audio_to_mel_spec(in_dir, sr=16000, length=64000, n_fft=2048, hop_length=18, n_mels=128, frame_length=256):
+def audio_to_mel_spec(in_dir, sr=16000, length=64000, n_fft=2048, hop_length=18, n_mels=128):
     '''
         短時傅立葉轉換 STFT -> mel spectrogram
     '''
@@ -142,10 +142,11 @@ def audio_to_mel_spec(in_dir, sr=16000, length=64000, n_fft=2048, hop_length=18,
         y = split_audio(y, length)
        
         melspec = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=n_fft, hop_length=hop_length, window='hamming', n_mels=n_mels)
-        melspec_db = librosa.power_to_db(melspec, ref=np.max)
+        melspec_db = librosa.power_to_db(melspec, ref=np.max) #melspec_db(128, 3585)
+        data_list.append(np.array(melspec_db))
 
-        sp_len = melspec_db.shape[1]
-        for start in range(0, sp_len-1, frame_length):
-            data_list.append(np.array(melspec_db[:, start:start+frame_length]))
+        #sp_len = melspec_db.shape[1]
+        #for start in range(0, sp_len-1, frame_length):
+        #    data_list.append(np.array(melspec_db[:, start:start+frame_length]))
 
     return data_list
