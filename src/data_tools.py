@@ -43,11 +43,11 @@ def mat_load(file, in_dir):
     '''
     data = loadmat(os.path.join(in_dir, file))#['bandFTM']['bandFFT']
     FTM_samples = np.array(data['bandFTM'])
-    FFT_samples = np.array(data['bandFFT'])
-    FFT_samples = np.abs(FFT_samples)
+    #FFT_samples = np.array(data['bandFFT'])
+    #FFT_samples = np.abs(FFT_samples)
     #length = FTM_samples.shape[1]
     
-    return FTM_samples, FFT_samples
+    return FTM_samples#, FFT_samples
 
 def audio_to_numpy(in_dir,  sample_rate, length):
     '''
@@ -83,7 +83,7 @@ def clean_file_to_matrix(in_dir, repeat):
     list_FTM, list_FTM_array = [], []
         
     for file in file_list:
-        FTM_samples, _ = mat_load(file, in_dir)
+        FTM_samples = mat_load(file, in_dir)
         list_FTM_array.append(FTM_samples)
         #sp_len = FTM_samples.shape[1]
 

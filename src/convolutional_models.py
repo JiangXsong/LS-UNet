@@ -73,12 +73,13 @@ class Deep_ElectroNet(nn.Module):
 	def __init__(self):
 		super(Deep_ElectroNet, self).__init__()
 		self.down_sp = nn.ModuleList()
-		self.down = nn.Conv1d(in_channels=3556, out_channels=2005, kernel_size=1, stride=1) #nn.Linear(3556, 2005)
-		self.up = nn.Conv1d(in_channels=125, out_channels=3556, kernel_size=1, stride=1)
-		
+		self.down = nn.Sequential(nn.Conv1d(in_channels=3556, out_channels=2021, kernel_size=1, stride=1), nn.ReLU()) 
+		#self.up = nn.Sequential(nn.Conv1d(in_channels=126, out_channels=1778, kernel_size=1, stride=1),nn.ReLU(),nn.Conv1d(in_channels=1778, out_channels=3556, kernel_size=1, stride=1))
+		self.up = nn.Conv1d(in_channels=126, out_channels=3556, kernel_size=1, stride=1)
 		for _ in range(2):
 			self.down_sp.append(nn.Sequential(
 				nn.Conv1d(in_channels=128, out_channels=128, kernel_size=3, stride=2),
+				nn.BatchNorm1d(128),
 				nn.ReLU(),
 				nn.MaxPool1d(2)		
 			))
@@ -88,7 +89,7 @@ class Deep_ElectroNet(nn.Module):
 
 	def forward(self, input):
 		input = input.permute(0, 2, 1)
-		input = self.down(input) #(1, 128, 3556) -> (1, 128, 2005)
+		input = self.down(input) #(1, 128, 3556) -> (1, 128, 2021)
 		input = input.permute(0, 2, 1)
 		for down_sampling in self.down_sp:
 			input = down_sampling(input) #(1, 128, 3556) -> (1, 128, 125)
@@ -96,10 +97,12 @@ class Deep_ElectroNet(nn.Module):
 		input = input.unsqueeze(0) #(1, 128, 125) -> (1, 1, 128, 125)
 		x1 = self.LS_UNet(input)
 		x1 = x1.squeeze(0) #(1, 128, 125)
-		x1 = x1.permute(0, 2, 1) #(1, 125, 128)
-		x = self.up(x1) #(1, 3556, 128)
-		print("x ", x.shape)
+		#print("----->", x1.shape)
+		x = x1.permute(0, 2, 1) #(1, 125, 128)
+		x = self.up(x)#(1, 3556, 128)
+		#print("x ", x.shape)
 		output = self.CS(x)
+		#print("----->", output.shape)
 		output = output.squeeze(0)
 
 		return output, x1.squeeze(0)

@@ -45,7 +45,7 @@ class AudioDataset(data.Dataset):
         FTM_sources = torch.from_numpy(Y_ftm).float()
         CLEAN_sources = torch.from_numpy(Y_clean).float()
         
-        print(X_in.shape)
+        print(data.shape)
         print(FTM_sources.shape)
         print(CLEAN_sources.shape)
         

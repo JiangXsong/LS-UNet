@@ -17,7 +17,7 @@ class Solver(object):
         self.model = model
         self.optimizer = optimizer
         self.mse_loss = nn.MSELoss()
-        self.sl1_loss = nn.SmoothL1Loss()
+        self.sl1_loss = nn.L1Loss()
 
         # Training config
         self.use_cuda = args.use_cuda
@@ -59,7 +59,7 @@ class Solver(object):
     def train(self):
         # Train model multi-epoches
         tr_loss_value, val_loss_value = [], []
-        loss_weigth = [3.0, 1.0] #[mse_weigth, sl1_weigth]
+        loss_weigth = [0.5, 0.5] #[mse_weigth, sl1_weigth]
         
         for epoch in range(self.start_epoch, self.epochs):
             # Train one epoch

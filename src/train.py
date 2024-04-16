@@ -83,6 +83,7 @@ parser.add_argument('--print_freq', default=100, type=int,
 def main(args):
     # Construct Solver
     # data
+    print("add BatchNorm and relu")
     tr_dataset = AudioDataset(args.train_dir)
     cv_dataset = AudioDataset(args.valid_dir)
     tr_loader = DataLoader(tr_dataset ,batch_size = 1, shuffle=args.shuffle)

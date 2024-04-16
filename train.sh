@@ -11,21 +11,21 @@ dumpdir=data  #directory ro put generated json file
 train_dir=$dumpdir/tr
 valid_dir=$dumpdir/cv
 sample_rate=16000
-n_fft=128
-frame_length=128
+n_fft=2048
+frame_length=2048
 
 # Training config
 use_cuda=1
 id=0
 epochs=100
 half_lr=1
-early_stop=0
+early_stop=1
 max_norm=5
 
 shuffle=1
 batch_size=1
 optimizer=adam
-lr=2e-4
+lr=2e-5
 momentum=0
 l2=0
 # save
