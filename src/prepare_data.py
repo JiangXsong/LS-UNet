@@ -3,7 +3,7 @@
 import argparse
 import os
 import numpy as np
-from data_tools import audio_to_numpy, clean_file_to_matrix, numpy_audio_to_matrix_spectrogram, audio_to_mel_spec
+from data_tools import clean_file_to_matrix, audio_to_mel_spec
 
 data_dir = "/home/song/LS-UNet/"
 Out_dir = "data"
@@ -20,18 +20,6 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
                                              n_fft=n_fft,
                                              hop_length=18,
                                              n_mels=128))  
-  
-  '''    
-    noise_data_list.append(audio_to_numpy(os.path.join(in_dir, data_type, snr),
-                                          sample_rate=sample_rate,
-                                          length=64512))    
-  noise_data_array = np.vstack(noise_data_list)
-
-  sp_noise, yphase = numpy_audio_to_matrix_spectrogram(noise_data_array,
-                                                       frame_length,
-                                                       n_fft,
-                                                       hop_length_fft=18)
-  '''
 
   print("sp_noise ", len(noise_data_list))  
   np.save(out_dir + '/noise_Spec', noise_data_list)    
@@ -58,7 +46,7 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
     
 
 def prepare_data(args):
-  for data_type in ['tr', 'cv']:
+  for data_type in ['tr', 'cv', 'tt']:
     out_dir = os.path.join(args.out_dir, data_type)
 
     if data_type == 'tr':
@@ -67,6 +55,17 @@ def prepare_data(args):
 
     elif data_type == 'cv':
       snr_list = ['-3.0', '-6.0', '-9.0', '3.0', '6.0', '9.0']
+      prepare_one_dir(data_type, args.in_dir, out_dir, snr_list, args.sample_rate, args.n_fft)
+
+    elif data_type == 'tt':
+      snr_list = ['-5dB', '5dB', '0dB']
+      files_save_ls = []
+      save_ls = os.listdir(os.path.abspath(os.path.join(args.in_dir, data_type, 'clean_wav')))
+      save_ls.sort()
+      for _ in range(len(snr_list)):
+        files_save_ls.extend(save_ls)
+      np.save(out_dir + '/filenames', files_save_ls)
+
       prepare_one_dir(data_type, args.in_dir, out_dir, snr_list, args.sample_rate, args.n_fft)
 
     else:
