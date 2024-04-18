@@ -5,7 +5,7 @@ import os
 import numpy as np
 from data_tools import clean_file_to_matrix, audio_to_mel_spec
 
-data_dir = "/home/song/LS-UNet/"
+data_dir = "/home/song/LS-UNet/audio"
 Out_dir = "data"
 
 def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
@@ -46,7 +46,7 @@ def prepare_one_dir(data_type, in_dir, out_dir, snr_list, sample_rate, n_fft):
     
 
 def prepare_data(args):
-  for data_type in ['tr', 'cv', 'tt']:
+  for data_type in ['tt']:
     out_dir = os.path.join(args.out_dir, data_type)
 
     if data_type == 'tr':
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     parser.add_argument('--sample_rate', type=int, default=16000,
                         help='Sample rate of audio file')
     parser.add_argument('--n_fft', type=int, default=2048)
-    parser.add_argument('--frame_length', type=int, default=256) #4(s)*16000
+    
     args = parser.parse_args()
     print(args)
     prepare_data(args)

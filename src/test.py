@@ -13,12 +13,13 @@ from CI_vocoder import sound_stimulate
 
 modelpath = 'exp/add_batchnorm_train_r16000_epoch100_half1_norm5_adam_lr2e-5_mmt0_l20_tr/final.pth.tar'
 ttdir = 'data/tt'
+outdir = 'exp/add_batchnorm_train_r16000_epoch100_half1_norm5_adam_lr2e-5_mmt0_l20_tr/eval'
 
 parser = argparse.ArgumentParser('Generate CI FTM using UNet-CS')
 parser.add_argument('--model_path', type=str, required=True, default=modelpath)
 parser.add_argument('--test_dir', type=str, default=ttdir)
-parser.add_argument('--out_dir', type=str, default=None)
-parser.add_argument('--use_cuda', type=int, default=0)
+parser.add_argument('--out_dir', type=str, default=outdir)
+parser.add_argument('--use_cuda', type=int, default=1)
 parser.add_argument('--sample_rate', type=int, default=16000,
                         help='Sample rate of audio file')
 

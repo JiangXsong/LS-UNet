@@ -46,7 +46,7 @@ ngpu=1 # always 1
 if [ $stage -le 1 ]; then
   echo "Stage 1: Generating json files including wav path and duration"
   [ ! -d $dumpdir ] && mkdir $dumpdir
-  prepare_data.py --in_dir $speech --out_dir $dumpdir --sample_rate $sample_rate --n_fft $n_fft --frame_length $frame_length
+  prepare_data.py --in_dir $speech --out_dir $dumpdir --sample_rate $sample_rate --n_fft $n_fft 
 fi
 
 
